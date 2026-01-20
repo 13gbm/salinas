@@ -1,4 +1,4 @@
-const CACHE_NAME = 'portal-13gbm-github-v1';
+const CACHE_NAME = 'portal-13gbm-github-v2'; // Mudei versão
 const urlsToCache = [
   './',
   './index.html',
