@@ -8,13 +8,13 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "./icone.png",
+      "src": "https://ui-avatars.com/api/?name=13+GBM&background=b71c1c&color=000000&size=192&font-size=0.35&bold=true&length=6",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icone.png",
+      "src": "https://ui-avatars.com/api/?name=13+GBM&background=b71c1c&color=000000&size=512&font-size=0.35&bold=true&length=6",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
