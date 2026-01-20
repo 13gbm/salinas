@@ -1,9 +1,9 @@
-const CACHE_NAME = 'portal-13gbm-github-v5'; // VERSÃO 5
+const CACHE_NAME = 'portal-13gbm-github-v6'; // VERSÃO 6
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
-  './icone.png',  // ADICIONEI SUA IMAGEM AQUI PARA O CACHE
+  'https://ui-avatars.com/api/?name=13+GBM&background=b71c1c&color=000000&size=192&font-size=0.35&bold=true&length=6', // CACHE DO ÍCONE
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
