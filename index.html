@@ -23,14 +23,22 @@
         .card-text h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--dark); }
         .card-text span { font-size: 0.8rem; color: #757575; }
 
-        /* LOADING MAIS LEVE */
+        /* LOADING */
         #loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffffff; z-index: 998; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--red-bombeiro); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         #app-frame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 997; background: white; display: none; }
         #btn-voltar { position: fixed; bottom: 20px; right: 20px; z-index: 1000; background-color: var(--dark); color: white; border: none; width: 55px; height: 55px; border-radius: 50%; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; }
-        #install-btn { display: none; width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 10px; font-weight: bold; margin-bottom: 20px; }
+        
+        /* BOTÃO INSTALAR AGORA SEMPRE VISÍVEL */
+        #install-btn { display: block; width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 10px; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
+        
+        /* MODAL DE INSTRUÇÕES */
+        #install-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .step-icon { font-size: 1.5rem; color: #555; margin: 10px 0; }
+        .close-modal { margin-top: 15px; background: var(--dark); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -40,12 +48,27 @@
         <div style="font-weight:bold; color:#555;">Carregando...</div>
     </div>
 
+    <div id="install-modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:var(--red-bombeiro)">Instalar App</h3>
+            <p>Seu navegador bloqueou a instalação automática. Faça manualmente:</p>
+            <hr style="border:0; border-top:1px solid #eee;">
+            
+            <div style="text-align:left; font-size:0.9rem; line-height:1.6;">
+                1. Toque nos <strong>3 pontinhos</strong> do navegador <i class="fas fa-ellipsis-v"></i> ou compartilhar <i class="fas fa-share-square"></i>.<br>
+                2. Procure a opção <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à Tela de Início"</strong>.
+            </div>
+            
+            <button class="close-modal" onclick="document.getElementById('install-modal').style.display='none'">Entendi</button>
+        </div>
+    </div>
+
     <div id="main-menu">
         <div class="app-header"><h1>13º GBM - Pará</h1><p>Sistema Integrado de Gestão</p></div>
         <div class="dashboard">
-            <button id="install-btn"><i class="fas fa-download"></i> INSTALAR APLICATIVO</button>
+            <button id="install-btn" onclick="tentarInstalar()"><i class="fas fa-download"></i> INSTALAR APLICATIVO</button>
 
-            <div class="card-menu" onclick="abrirApp('https://script.google.com/macros/s/AKfycbwPme3qI7JPbhmAFoyAA1LBKRQd3_tLAReUzxEdZKpQzTQtW_g1g3qn77cozs-Qu_C-/exec')">
+            <div class="card-menu" onclick="abrirApp('COLE_O_LINK_DA_CONFERENCIA_AQUI')">
                 <div class="icon-box"><i class="fas fa-clipboard-check"></i></div>
                 <div class="card-text"><h3>Conferência VTR</h3><span>Checklist Diário e Materiais</span></div>
             </div>
@@ -60,13 +83,14 @@
                 <div class="card-text"><h3>Combustível</h3><span>Registro de Abastecimento</span></div>
             </div>
         </div>
-        <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.7rem;"><p>Versão GitHub 1.2</p></div>
+        <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.7rem;"><p>Versão GitHub 1.3</p></div>
     </div>
 
     <iframe id="app-frame" src=""></iframe>
     <button id="btn-voltar" onclick="fecharApp()"><i class="fas fa-home fa-lg"></i></button>
 
     <script>
+        // MOTOR DE NAVEGAÇÃO
         function abrirApp(url) {
             if(url.includes("COLE_O_LINK")) { alert("Link não configurado!"); return; }
             document.getElementById('main-menu').style.display = 'none';
@@ -74,8 +98,6 @@
             const frame = document.getElementById('app-frame');
             frame.src = url;
             frame.style.display = 'block';
-            
-            // REMOVIDO O ATRASO ARTIFICIAL
             frame.onload = function() {
                 document.getElementById('loading-screen').style.display = 'none';
                 document.getElementById('btn-voltar').style.display = 'flex';
@@ -92,29 +114,37 @@
 
         window.addEventListener('message', function(event) { if (event.data === "fecharApp") { fecharApp(); } });
 
-        // LÓGICA DE INSTALAÇÃO AJUSTADA
+        // --- LÓGICA DE INSTALAÇÃO HÍBRIDA ---
         let deferredPrompt;
+        
+        // 1. O navegador avisa que pode instalar
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            const btn = document.getElementById('install-btn');
-            btn.style.display = 'block'; // Força aparecer se o evento disparar
-            btn.addEventListener('click', () => {
-                btn.style.display = 'none';
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => { deferredPrompt = null; });
-            });
+            // O botão já está visível, não precisa fazer nada
         });
 
+        // 2. Quando o usuário clica no botão
+        function tentarInstalar() {
+            if (deferredPrompt) {
+                // Cenário A: Instalação Automática disponível
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if(choiceResult.outcome === 'accepted') {
+                        document.getElementById('install-btn').style.display = 'none'; // Some se aceitar
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                // Cenário B: Instalação bloqueada ou iPhone
+                // Mostra o modal ensinando a instalar
+                document.getElementById('install-modal').style.display = 'flex';
+            }
+        }
+
         if ('serviceWorker' in navigator) {
-            // Caminho relativo ./sw.js é crucial para o GitHub
-            navigator.serviceWorker.register('./sw.js').then(function(registration) {
-                console.log('SW registrado com sucesso:', registration.scope);
-            }, function(err) {
-                console.log('Falha no SW:', err);
-            });
+            navigator.serviceWorker.register('./sw.js');
         }
     </script>
 </body>
 </html>
-
