@@ -6,7 +6,7 @@
     <title>Portal 13º GBM</title>
     
     <link rel="manifest" href="./manifest.json">
-    <link rel="apple-touch-icon" href="./icone.png">
+    <link rel="apple-touch-icon" href="https://ui-avatars.com/api/?name=13+GBM&background=b71c1c&color=000000&size=192&font-size=0.35&bold=true&length=6">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <meta name="theme-color" content="#b71c1c">
 
@@ -31,8 +31,13 @@
         #app-frame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: none; z-index: 997; background: white; display: none; }
         #btn-voltar { position: fixed; bottom: 20px; right: 20px; z-index: 1000; background-color: var(--dark); color: white; border: none; width: 55px; height: 55px; border-radius: 50%; display: none; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; }
         
-        /* BOTÃO INSTALAR ESTILO NETLIFY (SÓ APARECE SE PUDER INSTALAR) */
-        #install-btn { display: none; width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 10px; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
+        /* BOTÃO INSTALAR SEMPRE VISÍVEL */
+        #install-btn { display: block; width: 100%; padding: 15px; background: #2e7d32; color: white; border: none; border-radius: 10px; font-weight: bold; margin-bottom: 20px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* MODAL DE INSTRUÇÕES */
+        #install-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .close-modal { margin-top: 15px; background: var(--dark); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -42,10 +47,22 @@
         <div style="font-weight:bold; color:#555;">Carregando...</div>
     </div>
 
+    <div id="install-modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:var(--red-bombeiro)">Instalar Aplicativo</h3>
+            <p style="color:#555; font-size:0.9rem;">Para colocar o ícone na sua tela inicial:</p>
+            <div style="text-align:left; background:#f4f4f9; padding:10px; border-radius:8px; font-size:0.9rem; line-height:1.6; margin:10px 0;">
+                1. Toque nos <strong>3 pontinhos</strong> <i class="fas fa-ellipsis-v"></i> (ou Compartilhar no iPhone).<br>
+                2. Selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à Tela de Início"</strong>.
+            </div>
+            <button class="close-modal" onclick="document.getElementById('install-modal').style.display='none'">ENTENDI</button>
+        </div>
+    </div>
+
     <div id="main-menu">
         <div class="app-header"><h1>13º GBM - Pará</h1><p>Sistema Integrado de Gestão</p></div>
         <div class="dashboard">
-            <button id="install-btn"><i class="fas fa-download"></i> INSTALAR APLICATIVO</button>
+            <button id="install-btn" onclick="tentarInstalar()"><i class="fas fa-download"></i> INSTALAR APLICATIVO</button>
 
             <div class="card-menu" onclick="abrirApp('COLE_O_LINK_DA_CONFERENCIA_AQUI')">
                 <div class="icon-box"><i class="fas fa-clipboard-check"></i></div>
@@ -62,7 +79,7 @@
                 <div class="card-text"><h3>Combustível</h3><span>Registro de Abastecimento</span></div>
             </div>
         </div>
-        <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.7rem;"><p>Versão GitHub 2.0</p></div>
+        <div style="text-align: center; margin-top: 20px; color: #ccc; font-size: 0.7rem;"><p>Versão GitHub 3.0 (Final)</p></div>
     </div>
 
     <iframe id="app-frame" src=""></iframe>
@@ -92,25 +109,32 @@
 
         window.addEventListener('message', function(event) { if (event.data === "fecharApp") { fecharApp(); } });
 
-        // --- LÓGICA NETLIFY (AUTOMÁTICA) ---
+        // --- LÓGICA DE INSTALAÇÃO (FORÇADA) ---
         let deferredPrompt;
+        
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            const btn = document.getElementById('install-btn');
-            btn.style.display = 'block'; // SÓ APARECE SE O NAVEGADOR DEIXAR
-            
-            btn.addEventListener('click', () => {
-                btn.style.display = 'none';
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    deferredPrompt = null;
-                });
-            });
+            // O botão já está lá, esperando
         });
 
+        function tentarInstalar() {
+            if (deferredPrompt) {
+                // Se o navegador permitiu automático
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if(choiceResult.outcome === 'accepted') {
+                        document.getElementById('install-btn').style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                // Se o navegador bloqueou ou é iPhone -> Mostra manual
+                document.getElementById('install-modal').style.display = 'flex';
+            }
+        }
+
         if ('serviceWorker' in navigator) {
-            // Caminho relativo para GitHub
             navigator.serviceWorker.register('./sw.js');
         }
     </script>
